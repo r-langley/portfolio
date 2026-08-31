@@ -11,6 +11,11 @@ import { site, categories, approach } from "./content/site.mjs";
 import { cases, archive } from "./content/cases.mjs";
 
 const OUT = new URL("./", import.meta.url).pathname;
+
+// Absolute origin for canonical + Open Graph URLs. Unfurlers require absolute
+// image/URLs, so these can't be relative. Update this if a custom domain (e.g.
+// https://rosslangley.com) is pointed at the site via Pages + a CNAME file.
+const SITE_URL = "https://r-langley.github.io/portfolio";
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const tk = (s) =>
   String(s).replace(/\bTK\b/g, '<span class="tk">TK</span>');
@@ -588,6 +593,37 @@ await writeFile(OUT + "preview.html", preview);
 const DIST = OUT + "dist/";
 await mkdir(DIST + "assets", { recursive: true });
 
+// Head metadata: favicon (fixes the blank tab), description, canonical, and the
+// Open Graph / Twitter cards that make shared links unfurl with a preview.
+// Icons use RELATIVE hrefs (the site lives under /portfolio/); OG url + image
+// are ABSOLUTE via SITE_URL, as unfurlers require. `noindex` still keeps the
+// site out of search results — that directive doesn't block preview bots; the
+// robots.txt below is what allows them through.
+const DESCRIPTION = site.hero.deck;
+const OG_TITLE = `${site.name} — ${site.role}`;
+const OG_IMAGE = `${SITE_URL}/assets/og.png`;
+const META = `<meta name="description" content="${esc(DESCRIPTION)}">
+<meta name="author" content="${esc(site.name)}">
+<link rel="canonical" href="${SITE_URL}/">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f6">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101109">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="${esc(site.name)}">
+<meta property="og:title" content="${esc(OG_TITLE)}">
+<meta property="og:description" content="${esc(DESCRIPTION)}">
+<meta property="og:url" content="${SITE_URL}/">
+<meta property="og:image" content="${OG_IMAGE}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${esc(OG_TITLE)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(OG_TITLE)}">
+<meta name="twitter:description" content="${esc(DESCRIPTION)}">
+<meta name="twitter:image" content="${OG_IMAGE}">`;
+
 const siteIndex = `<!doctype html>
 <html lang="en">
 <head>
@@ -595,6 +631,7 @@ const siteIndex = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>${esc(site.name)} — ${esc(site.role)}</title>
+${META}
 ${FONTS}
 </head>
 <body>
@@ -610,6 +647,7 @@ const ringTunnel = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <title>Ring Tunnel</title>
 <style>
   html,body{margin:0;height:100%;background:#ededed;overflow:hidden}
@@ -628,8 +666,24 @@ await writeFile(OUT + "ring-tunnel.html", ringTunnel); // convenience copy at ro
 // inlined, but shipping them keeps the folder self-describing for later)
 await cp(OUT + "assets", DIST + "assets", { recursive: true });
 
-// static-host housekeeping: skip Jekyll, keep the site out of search indexes
+// static-host housekeeping: skip Jekyll, keep the site out of search indexes.
+// robots.txt lets the link-preview crawlers fetch the page (so shared links
+// unfurl) but keeps general/search crawlers out; noindex in the head is the
+// belt-and-braces that keeps it off search results either way.
 await writeFile(DIST + ".nojekyll", "");
-await writeFile(DIST + "robots.txt", "User-agent: *\nDisallow: /\n");
+await writeFile(
+  DIST + "robots.txt",
+  [
+    "# Allow link-preview crawlers so shared links unfurl with a card.",
+    ...["Twitterbot", "facebookexternalhit", "Slackbot-LinkExpanding", "Slackbot",
+        "LinkedInBot", "Discordbot", "TelegramBot", "WhatsApp", "Applebot", "redditbot"]
+      .flatMap((ua) => [`User-agent: ${ua}`, "Allow: /"]),
+    "",
+    "# Everyone else, search engines included: stay out (noindex also set).",
+    "User-agent: *",
+    "Disallow: /",
+    "",
+  ].join("\n"),
+);
 
 console.log("built dist/ — " + pages.length + " pages in one self-contained index.html");
