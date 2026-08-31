@@ -533,7 +533,12 @@ export const cases = [
       { k: "My role", v: "Facilitation and product design" },
     ],
 
-    heroImage: { tone: "amber", motif: "flow", alt: "adidas team merge — hero image slot" },
+    heroImage: {
+      src: "assets/cases/adidas/adidas.png",
+      alt: "adidas — merging the web and mobile design systems",
+      tone: "amber",
+      motif: "flow",
+    },
 
     sections: [
       {
@@ -589,7 +594,12 @@ export const cases = [
       { k: "My role", v: "Product design" },
     ],
 
-    heroImage: { tone: "indigo", motif: "nodes", alt: "Sygma engineering agents — hero image slot" },
+    heroImage: {
+      src: "assets/cases/sygma/sygma.png",
+      alt: "Sygma — agents for hardware scheduling and change management",
+      tone: "indigo",
+      motif: "nodes",
+    },
 
     sections: [
       {
