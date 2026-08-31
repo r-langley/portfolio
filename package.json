@@ -1,0 +1,15 @@
+{
+  "name": "ross-langley-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Ross Langley — product design director portfolio. Static site, content-model-driven, custom WebGL/physics hero.",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "python3 -m http.server 8099 --directory dist",
+    "dev": "node build.mjs && python3 -m http.server 8099 --directory dist"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

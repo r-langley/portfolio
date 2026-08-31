@@ -1,0 +1,11 @@
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# macOS
+.DS_Store
+
+# Claude Code local tooling (machine-specific paths)
+.claude/
