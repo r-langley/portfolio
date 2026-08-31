@@ -1,5 +1,7 @@
 # Build output
 dist/
+preview.html
+ring-tunnel.html
 
 # Dependencies
 node_modules/
