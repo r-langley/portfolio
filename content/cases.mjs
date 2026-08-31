@@ -43,7 +43,12 @@ export const cases = [
       { k: "My role", v: "Set the model, ran the practice, wrote the structure" },
     ],
 
-    heroImage: { tone: "amber", motif: "nodes", alt: "Fresh org brain — hero image slot" },
+    heroImage: {
+      src: "assets/cases/org-brain/org-brain.png",
+      alt: "Fresh org brain — object-model graph of entities and links",
+      tone: "amber",
+      motif: "nodes",
+    },
 
     sections: [
       {
@@ -127,14 +132,8 @@ export const cases = [
     ],
 
     heroImage: {
-      src: [
-        "assets/cases/fresh/kds-graph.png",
-        "assets/cases/fresh/kds-enterprise.png",
-      ],
-      alt: [
-        "Fresh KDS — item-level timing surface",
-        "Fresh — enterprise configurability across locations",
-      ],
+      src: "assets/cases/fresh/kds-enterprise.png",
+      alt: "Fresh — enterprise configurability across locations",
       tone: "teal",
       motif: "grid",
     },
