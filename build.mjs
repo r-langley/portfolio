@@ -82,6 +82,19 @@ function buildResumeMarkdown() {
 const TONE_HEX = { indigo: "#4f46e5", teal: "#0d7a63", amber: "#a55a08" };
 
 function heroImage(img) {
+  // A real image, when the case supplies one. The src is RELATIVE (no leading
+  // slash) on purpose: the site is served under /portfolio/, so an absolute
+  // "/assets/…" would resolve to the host root and 404. The .hero-img container
+  // holds the 2.25:1 ratio, so width/height here only hint intrinsic size (and
+  // keep it CLS-free); object-fit: cover crops to the box. Cases without a src
+  // fall through to the procedural placeholder below.
+  if (img.src) {
+    const src = String(img.src).replace(/^\/+/, ""); // guard a stray leading slash
+    return `<div class="hero-img">
+    <img src="${esc(src)}" alt="${esc(img.alt)}" width="2400" height="1068" loading="lazy" decoding="async">
+  </div>`;
+  }
+
   const c = TONE_HEX[img.tone] || "#4f46e5";
   const motifs = {
     grid: Array.from({ length: 90 }, (_, i) => {

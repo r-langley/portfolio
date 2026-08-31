@@ -6,6 +6,8 @@
 //   thing the card grid, the table view and the drill-down hero all share.
 //   `sections` is an ordered array of blocks — this is what becomes a portable
 //   text / block content field.
+//   `heroImage` renders a real <img> when it has a relative `src`, else falls
+//   back to a procedural `tone`+`motif` placeholder. See the Lolo case below.
 //
 // TK = a number or fact still to supply. Rendered in a dashed chip so nothing
 // unverified ships quietly.
@@ -207,7 +209,17 @@ export const cases = [
       { k: "My role", v: "Design lead, design system (Terra), agent interaction model" },
     ],
 
-    heroImage: { tone: "indigo", motif: "flow", alt: "Lolo agentic workflows — hero image slot" },
+    // Worked reference for real hero images. `src` is RELATIVE (no leading
+    // slash — the site is served under /portfolio/). Drop your export at this
+    // exact path (2.25:1, ~2400×1068, optimised webp/avif) to replace the
+    // placeholder — no code change needed. `tone`/`motif` remain the fallback
+    // if `src` is ever removed. Copy this pattern onto the other cases.
+    heroImage: {
+      src: "assets/cases/lolo/hero.svg",
+      alt: "Lolo — agentic workflows for wealth advisors",
+      tone: "indigo",
+      motif: "flow",
+    },
 
     sections: [
       {
