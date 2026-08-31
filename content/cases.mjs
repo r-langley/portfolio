@@ -6,8 +6,10 @@
 //   thing the card grid, the table view and the drill-down hero all share.
 //   `sections` is an ordered array of blocks — this is what becomes a portable
 //   text / block content field.
-//   `heroImage` renders a real <img> when it has a relative `src`, else falls
-//   back to a procedural `tone`+`motif` placeholder. See the Lolo case below.
+//   `heroImage` renders a real <img> when it has a relative `src` (a string, or
+//   an array to stack several — see the Fresh case, whose `alt` is a matching
+//   array), else a procedural `tone`+`motif` placeholder. The container hugs the
+//   image: full width, natural height, intrinsic size read at build time.
 //
 // TK = a number or fact still to supply. Rendered in a dashed chip so nothing
 // unverified ships quietly.
@@ -124,7 +126,18 @@ export const cases = [
       { k: "My role", v: "Design leadership, research, systems, hands-on frontend" },
     ],
 
-    heroImage: { tone: "teal", motif: "grid", alt: "Fresh KDS — hero image slot" },
+    heroImage: {
+      src: [
+        "assets/cases/fresh/kds-graph.png",
+        "assets/cases/fresh/kds-enterprise.png",
+      ],
+      alt: [
+        "Fresh KDS — item-level timing surface",
+        "Fresh — enterprise configurability across locations",
+      ],
+      tone: "teal",
+      motif: "grid",
+    },
 
     sections: [
       {
@@ -209,13 +222,8 @@ export const cases = [
       { k: "My role", v: "Design lead, design system (Terra), agent interaction model" },
     ],
 
-    // Worked reference for real hero images. `src` is RELATIVE (no leading
-    // slash — the site is served under /portfolio/). Drop your export at this
-    // exact path (2.25:1, ~2400×1068, optimised webp/avif) to replace the
-    // placeholder — no code change needed. `tone`/`motif` remain the fallback
-    // if `src` is ever removed. Copy this pattern onto the other cases.
     heroImage: {
-      src: "assets/cases/lolo/hero.svg",
+      src: "assets/cases/lolo/lolo.png",
       alt: "Lolo — agentic workflows for wealth advisors",
       tone: "indigo",
       motif: "flow",
@@ -307,7 +315,12 @@ export const cases = [
       { k: "My role", v: "Product design, led two senior designers, airline ops research" },
     ],
 
-    heroImage: { tone: "teal", motif: "arcs", alt: "Viasat fleet connectivity — hero image slot" },
+    heroImage: {
+      src: "assets/cases/viasat/viasat.png",
+      alt: "Viasat — multi-tenant fleet connectivity tooling",
+      tone: "teal",
+      motif: "arcs",
+    },
 
     sections: [
       {
@@ -374,7 +387,12 @@ export const cases = [
       { k: "My role", v: "Global operating strategy team" },
     ],
 
-    heroImage: { tone: "amber", motif: "blocks", alt: "Reaktor operating strategy — hero image slot" },
+    heroImage: {
+      src: "assets/cases/reaktor/reaktor.png",
+      alt: "Reaktor — global operating strategy and onboarding",
+      tone: "amber",
+      motif: "blocks",
+    },
 
     sections: [
       {
@@ -441,7 +459,12 @@ export const cases = [
       { k: "My role", v: "Design and frontend implementation" },
     ],
 
-    heroImage: { tone: "indigo", motif: "blocks", alt: "Bonsai generative search — hero image slot" },
+    heroImage: {
+      src: "assets/cases/bonsai/bonsai.png",
+      alt: "Bonsai — generative search that assembles its own UI",
+      tone: "indigo",
+      motif: "blocks",
+    },
 
     sections: [
       {

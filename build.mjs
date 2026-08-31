@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 
 import { writeFile, mkdir, readFile, cp } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { site, categories, approach } from "./content/site.mjs";
 import { cases, archive } from "./content/cases.mjs";
 
@@ -81,18 +82,80 @@ function buildResumeMarkdown() {
 /* --- hero image placeholders --------------------------------------------- */
 const TONE_HEX = { indigo: "#4f46e5", teal: "#0d7a63", amber: "#a55a08" };
 
+// Intrinsic pixel size of an image file, read from its header at build time
+// (dependency-free). Lets the <img> ship correct width/height so the container
+// hugs the image with no layout shift, whatever the file's aspect ratio.
+// Returns null if the format isn't recognised — the <img> then omits the
+// attributes (still renders, just without the CLS hint).
+function imageSize(absPath) {
+  let b;
+  try { b = readFileSync(absPath); } catch { return null; }
+
+  // PNG — IHDR width/height, big-endian uint32 at bytes 16 / 20.
+  if (b.length >= 24 && b.toString("ascii", 1, 4) === "PNG")
+    return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+
+  // GIF — logical screen size, little-endian uint16 at bytes 6 / 8.
+  if (b.length >= 10 && b.toString("ascii", 0, 3) === "GIF")
+    return { w: b.readUInt16LE(6), h: b.readUInt16LE(8) };
+
+  // JPEG — walk the segments to a Start-Of-Frame marker; it carries the size.
+  if (b.length >= 4 && b[0] === 0xff && b[1] === 0xd8) {
+    let o = 2;
+    while (o + 9 < b.length) {
+      if (b[o] !== 0xff) { o++; continue; }
+      const m = b[o + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc)
+        return { h: b.readUInt16BE(o + 5), w: b.readUInt16BE(o + 7) };
+      o += 2 + b.readUInt16BE(o + 2);
+    }
+    return null;
+  }
+
+  // WebP (RIFF/WEBP) — VP8X (extended), VP8 (lossy) or VP8L (lossless).
+  if (b.length >= 30 && b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP") {
+    const fourcc = b.toString("ascii", 12, 16);
+    if (fourcc === "VP8X")
+      return { w: 1 + (b[24] | (b[25] << 8) | (b[26] << 16)), h: 1 + (b[27] | (b[28] << 8) | (b[29] << 16)) };
+    if (fourcc === "VP8 ")
+      return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+    if (fourcc === "VP8L") {
+      const n = b.readUInt32LE(21);
+      return { w: (n & 0x3fff) + 1, h: ((n >> 14) & 0x3fff) + 1 };
+    }
+    return null;
+  }
+
+  // SVG — explicit width/height, else the last two numbers of the viewBox.
+  const head = b.toString("utf8", 0, Math.min(b.length, 2048));
+  if (/<svg[\s>]/i.test(head)) {
+    const w = head.match(/\bwidth="([\d.]+)/i), h = head.match(/\bheight="([\d.]+)/i);
+    if (w && h) return { w: Math.round(+w[1]), h: Math.round(+h[1]) };
+    const vb = head.match(/viewBox="\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([-\d.]+)[\s,]+([-\d.]+)/i);
+    if (vb) return { w: Math.round(+vb[1]), h: Math.round(+vb[2]) };
+  }
+  return null;
+}
+
 function heroImage(img) {
-  // A real image, when the case supplies one. The src is RELATIVE (no leading
-  // slash) on purpose: the site is served under /portfolio/, so an absolute
-  // "/assets/…" would resolve to the host root and 404. The .hero-img container
-  // holds the 2.25:1 ratio, so width/height here only hint intrinsic size (and
-  // keep it CLS-free); object-fit: cover crops to the box. Cases without a src
-  // fall through to the procedural placeholder below.
-  if (img.src) {
-    const src = String(img.src).replace(/^\/+/, ""); // guard a stray leading slash
-    return `<div class="hero-img">
-    <img src="${esc(src)}" alt="${esc(img.alt)}" width="2400" height="1068" loading="lazy" decoding="async">
-  </div>`;
+  // Real image(s), when the case supplies `src` (a string, or an array to stack
+  // several). Each src is RELATIVE (no leading slash): the site is served under
+  // /portfolio/, so an absolute "/assets/…" would resolve to the host root and
+  // 404. Intrinsic width/height are read from the file so the container hugs the
+  // image — full width, natural height, no layout shift. `alt` may be a matching
+  // array. Cases without a src fall through to the procedural placeholder below.
+  const srcs = Array.isArray(img.src) ? img.src : img.src ? [img.src] : [];
+  if (srcs.length) {
+    const alts = Array.isArray(img.alt) ? img.alt : [];
+    return srcs
+      .map((s, i) => {
+        const src = String(s).replace(/^\/+/, ""); // guard a stray leading slash
+        const alt = alts[i] ?? (typeof img.alt === "string" ? img.alt : "");
+        const d = imageSize(OUT + src);
+        const wh = d ? ` width="${d.w}" height="${d.h}"` : "";
+        return `<div class="hero-img"><img src="${esc(src)}" alt="${esc(alt)}"${wh} loading="lazy" decoding="async"></div>`;
+      })
+      .join("\n    ");
   }
 
   const c = TONE_HEX[img.tone] || "#4f46e5";
