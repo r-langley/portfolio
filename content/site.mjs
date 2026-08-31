@@ -3,12 +3,17 @@
 // render comes from here or from cases.mjs.
 // ---------------------------------------------------------------------------
 
+// Resume lives in Google Docs; every "Resume" affordance points here.
+const RESUME_URL =
+  "https://docs.google.com/document/d/1Du8MWBkVNawyv37zuPOU911wANahhgjRtQm7Xw9Q2cE/edit?usp=sharing";
+
 export const site = {
   name: "Ross Langley",
   wordmark: "ross langley",
   role: "Product Design Director",
   domain: "rosslangley.com",
   email: "rlangley07@gmail.com",
+  resumeUrl: RESUME_URL,
   location: "Coral Springs, FL",
 
   hero: {
@@ -18,7 +23,7 @@ export const site = {
       "I grow products and teams for high-urgency, regulated environments where issues cascade and forgiveness is lost credibility.",
     ctas: [
       { label: "Read the work", href: "#work", primary: true },
-      { label: "Résumé", href: "#", primary: false },
+      { label: "Resume", href: RESUME_URL, primary: false },
     ],
   },
 
@@ -26,7 +31,7 @@ export const site = {
     // Sub-pages intentionally absent — the home page carries the whole story.
     primary: [],
     actions: [
-      { label: "résumé", href: "#" },
+      { label: "resume", href: RESUME_URL },
       { label: "get in touch", href: "mailto:rlangley07@gmail.com", primary: true },
     ],
   },
@@ -101,7 +106,7 @@ export const site = {
       {
         title: "Site",
         links: [
-          { label: "Résumé (PDF)", href: "#" },
+          { label: "Resume", href: RESUME_URL },
           { label: "Colophon", href: "/approach.html#colophon" },
           { label: "Email", href: "mailto:rlangley07@gmail.com" },
         ],

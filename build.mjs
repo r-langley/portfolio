@@ -19,6 +19,15 @@ const SITE_URL = "https://r-langley.github.io/portfolio";
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
 const tk = (s) =>
   String(s).replace(/\bTK\b/g, '<span class="tk">TK</span>');
+// Absolute (http) links open in a new tab, safely; in-site links are untouched
+// so the client router still intercepts them.
+const extAttr = (href) =>
+  /^https?:\/\//.test(href) ? ` target="_blank" rel="noopener noreferrer"` : "";
+// First hero image for a case, as a relative src for card thumbnails (or null).
+const heroSrc = (img) => {
+  const s = img && (Array.isArray(img.src) ? img.src[0] : img.src);
+  return s ? String(s).replace(/^\/+/, "") : null;
+};
 
 /* --- icons ---------------------------------------------------------------- */
 const I = {
@@ -41,7 +50,7 @@ function buildResumeMarkdown() {
   L.push("");
   L.push(`${site.location} · ${site.email}`);
   L.push("");
-  L.push("> Paste this into any AI assistant and ask about my work, my approach, or a specific project. It is a living résumé and context file.");
+  L.push("> Paste this into any AI assistant and ask about my work, my approach, or a specific project. It is a living resume and context file.");
   L.push("");
   L.push("## In one line");
   L.push(site.hero.deck);
@@ -226,7 +235,7 @@ const footer = () => `
       ${site.footer.columns.map((c) => `
       <div>
         <h4>${esc(c.title)}</h4>
-        <ul>${c.links.map((l) => `<li><a href="${l.href}">${esc(l.label)}</a></li>`).join("")}</ul>
+        <ul>${c.links.map((l) => `<li><a href="${l.href}"${extAttr(l.href)}>${esc(l.label)}</a></li>`).join("")}</ul>
       </div>`).join("")}
     </div>
     <div class="foot__base">
@@ -273,14 +282,14 @@ function heroSection() {
 <section class="hero" id="hero">
   <div class="hero__stage" id="stage"></div>
   <div class="wrap hero__in">
-    <button class="kpill" id="copyCtx" type="button" aria-label="Copy résumé and context for your agent">
+    <button class="kpill" id="copyCtx" type="button" aria-label="Copy resume and context for your agent">
       <kbd class="kkey" data-kmod>⌘</kbd><span class="kplus">+</span><kbd class="kkey">K</kbd>
       <span class="kpill__label">copy for your agent</span>
     </button>
     <h1>${site.hero.headline.map((l) => `<span class="ln">${glyphs(l)}</span>`).join("")}</h1>
     <p class="hero__deck">${esc(site.hero.deck)}</p>
     <div class="hero__ctas">
-      ${site.hero.ctas.map((c) => `<a class="btn${c.primary ? " btn--primary" : ""}" href="${c.href}">${esc(c.label)} ${c.primary ? I.arrow : ""}</a>`).join("")}
+      ${site.hero.ctas.map((c) => `<a class="btn${c.primary ? " btn--primary" : ""}" href="${c.href}"${extAttr(c.href)}>${esc(c.label)} ${c.primary ? I.arrow : ""}</a>`).join("")}
     </div>
   </div>
 </section>`;
@@ -301,8 +310,10 @@ function stripSection() {
 
 function card(c) {
   const cat = categories[c.category];
+  const img = heroSrc(c.heroImage);
   return `
 <a class="card tone-${cat.tone}" href="/work/${c.slug}.html">
+  ${img ? `<div class="card__img"><img src="${esc(img)}" alt="" loading="lazy" decoding="async"></div>` : ""}
   <h3>${tk(esc(c.title))}</h3>
   <p>${tk(esc(c.deck))}</p>
   <div class="card__out">
@@ -418,7 +429,7 @@ function ctaSection() {
         </div>
         <div class="hero__ctas" style="margin:0">
           <a class="btn btn--primary" href="mailto:${site.contact.email}">${esc(site.contact.email)} ${I.arrow}</a>
-          <a class="btn" href="#">Résumé</a>
+          <a class="btn" href="${site.resumeUrl}"${extAttr(site.resumeUrl)}>Resume</a>
         </div>
       </div>
     </div>
