@@ -4,7 +4,7 @@ Product design director portfolio. Static, dependency-free, content-model-driven
 
 ## Stack
 
-No framework, no build deps. `build.mjs` (Node, ESM) reads the content model in `content/` and the hand-written CSS/JS in `assets/`, and emits a single self-contained `dist/index.html` (every page is a section; a tiny client router maps the URLs). The physics hero and the WebGL ring tunnel are original, library-free.
+No framework, no build deps. `build.mjs` (Node, ESM) reads the content model in `content/` and the hand-written CSS/JS in `assets/`, and emits a real, self-contained file per route (`dist/index.html`, `approach.html`, `writing.html`, `work/<slug>.html`, plus a `404.html` fallback) so deep-links, refresh and share-cards resolve server-side. A tiny History-API client router then takes over for in-app clicks — instant section swaps that push real history entries, so the browser Back/Forward move between pages. Asset refs stay relative and the mount point is detected at runtime, so the same build runs at any URL depth (a GitHub Pages project subpath included). The physics hero and the WebGL ring tunnel are original, library-free.
 
 ## Layout
 

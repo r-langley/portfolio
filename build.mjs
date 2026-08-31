@@ -1,7 +1,8 @@
 // ---------------------------------------------------------------------------
 // build.mjs — generates the static site from content/.
 //   node build.mjs
-// Outputs: index.html, approach.html, writing.html, work/<slug>.html,
+// Outputs: dist/{index,approach,writing}.html + dist/work/<slug>.html + 404.html
+//          (a real file per route; a client router does in-app navigation),
 //          preview.html (single-file clickable build of the whole site)
 // ---------------------------------------------------------------------------
 
@@ -565,22 +566,29 @@ const writingBody = () => `
 </div></main>`;
 
 /* --- assemble pages (in memory) ------------------------------------------- */
+// `path` is the route (also the dist filename); `desc` feeds each page's own
+// description + Open Graph card, so a shared case link unfurls as that case.
 const pages = [
-  { file: "index.html", title: `${site.name} — ${site.role}`, body: homeBody(), hero: true, id: "home" },
-  { file: "approach.html", title: `Approach — ${site.name}`, body: approachBody(), id: "approach" },
-  { file: "writing.html", title: `Writing — ${site.name}`, body: writingBody(), id: "writing" },
+  { file: "index.html", path: "/", title: `${site.name} — ${site.role}`, desc: site.hero.deck, body: homeBody(), hero: true, id: "home" },
+  { file: "approach.html", path: "/approach.html", title: `Approach — ${site.name}`, desc: approach.deck, body: approachBody(), id: "approach" },
+  { file: "writing.html", path: "/writing.html", title: `Writing — ${site.name}`, desc: "Notes on intent-driven design, the designer–developer handoff, and what agentic products do to interface conventions.", body: writingBody(), id: "writing" },
   ...cases.map((c) => ({
     file: `work/${c.slug}.html`,
+    path: `/work/${c.slug}.html`,
     title: `${c.company} — ${site.name}`,
+    desc: String(c.deck).replace(/\bTK\b/g, "").replace(/\s+/g, " ").trim(),
     body: caseBody(c),
     id: `work-${c.slug}`,
   })),
 ];
 
-/* --- shared single-file body ---------------------------------------------- */
-// One self-contained document holds every page as a section; a tiny client
-// router maps the multi-page hrefs onto them. No absolute asset paths, so it
-// runs unchanged at any URL depth (a GitHub Pages project subpath included).
+/* --- shared body ---------------------------------------------------------- */
+// Every page is rendered as a hidden section in one document; the active one
+// gets .is-on. dist/ ships a real file per route (so deep-links, refresh and
+// share-cards resolve server-side), and the client router below takes over for
+// in-app clicks — instant section swaps that push real history entries, so the
+// browser Back/Forward move between pages instead of leaving the site. Asset
+// refs stay relative, so the same body runs at any URL depth.
 const css = await readFile(OUT + "assets/site.css", "utf8");
 const js = await readFile(OUT + "assets/site.js", "utf8");
 const heroJs = await readFile(OUT + "assets/hero.js", "utf8");
@@ -590,102 +598,152 @@ const FONTS =
   `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">`;
 
-const innerBody = `<style>${css}
+// route -> section id, and section id -> <title>, both handed to the client.
+const routeMap = { "/index.html": "home", "/approach.html": "approach", "/writing.html": "writing" };
+cases.forEach((c) => { routeMap["/work/" + c.slug + ".html"] = "work-" + c.slug; });
+const routeMapJson = JSON.stringify(routeMap);
+const titlesJson = JSON.stringify(Object.fromEntries(pages.map((p) => [p.id, p.title])));
+
+// Client router. Hrefs in the markup stay root-absolute (e.g. /work/lolo.html);
+// the mount point (a Pages project subpath, a local server root, or an artifact
+// host) is detected once as BASE, so the same script runs unchanged anywhere.
+const routerScript = `<script>
+(function(){
+  var map=${routeMapJson}, titles=${titlesJson};
+  // Match a pathname to [mountPrefix, id]. The longest route the (normalized)
+  // path ends with is the route; whatever precedes it is the mount prefix, so
+  // the same build runs at any depth. A directory URL ("…/") is the index, and
+  // a missing ".html" is tolerated (some static hosts serve clean URLs).
+  function match(p){
+    var q=p;
+    if(/\\/$/.test(q)) q+="index.html";
+    else if(!/\\.html?$/.test(q)) q+=".html";
+    var best="";
+    for(var k in map){ if(q.length>=k.length && q.slice(-k.length)===k && k.length>best.length) best=k; }
+    if(best) return [q.slice(0,-best.length), map[best]];
+    return [p.replace(/\\/[^\\/]*$/,""), null];
+  }
+  var BASE=match(location.pathname)[0];
+  function idFor(p){ return match(p)[1]; }
+  function show(id,anchor,smooth){
+    var pgs=document.querySelectorAll(".pg");
+    for(var i=0;i<pgs.length;i++) pgs[i].classList.toggle("is-on",pgs[i].dataset.pg===id);
+    if(titles[id]) document.title=titles[id];
+    var t=anchor&&document.querySelector(".pg.is-on "+anchor);
+    if(t) t.scrollIntoView(smooth?{behavior:"smooth"}:undefined); else window.scrollTo(0,0);
+  }
+  function resolve(smooth){ show(idFor(location.pathname)||"home", location.hash||null, smooth); }
+  document.addEventListener("click",function(e){
+    if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey) return;
+    var a=e.target.closest&&e.target.closest("a[href]"); if(!a) return;
+    if(a.target&&a.target!=="_self") return;
+    if(a.hasAttribute("download")) return;
+    var h=a.getAttribute("href");
+    if(!h||h.indexOf("mailto:")===0||/^https?:\\/\\//.test(h)) return;
+    if(h==="#"){ e.preventDefault(); return; }
+    if(h.charAt(0)==="#") return;                       // in-page anchor, current page
+    var hash="",base=h,hi=h.indexOf("#"); if(hi>-1){ base=h.slice(0,hi); hash=h.slice(hi); }
+    if(base==="/"||base==="") base="/index.html";
+    if(map[base]===undefined) return;                  // unknown internal path: let it be
+    e.preventDefault();
+    var url=BASE+base+hash;
+    if(url!==location.pathname+location.hash){ try{ history.pushState(null,"",url); }catch(_){} }
+    show(map[base],hash||null,true);
+  });
+  window.addEventListener("popstate",function(){ resolve(false); });
+  resolve(false);                                      // sync to the server-rendered route
+})();
+</script>`;
+
+// Assemble the document body around whichever section is active.
+const innerBodyFor = (activeId) => `<style>${css}
 .pg{display:none}.pg.is-on{display:block}</style>
 ${pages
   .map(
-    (p) => `<div class="pg${p.id === "home" ? " is-on" : ""}" data-pg="${p.id}">${nav()}${p.body}</div>`
+    (p) => `<div class="pg${p.id === activeId ? " is-on" : ""}" data-pg="${p.id}">${nav()}${p.body}</div>`
   )
   .join("\n")}
 ${resumeInject()}
-<script>
-// client router: maps the multi-page hrefs onto in-document sections
-(function(){
-  var map={"/index.html":"home","/approach.html":"approach","/writing.html":"writing"};
-  ${JSON.stringify(cases.map((c) => c.slug))}.forEach(function(s){ map["/work/"+s+".html"]="work-"+s; });
-  function show(id,anchor){
-    var pgs=document.querySelectorAll(".pg");
-    for(var i=0;i<pgs.length;i++) pgs[i].classList.toggle("is-on",pgs[i].dataset.pg===id);
-    var t=anchor&&document.querySelector('.pg.is-on '+anchor);
-    if(t) t.scrollIntoView({behavior:"smooth"}); else window.scrollTo(0,0);
-  }
-  document.addEventListener("click",function(e){
-    var a=e.target.closest&&e.target.closest("a[href]"); if(!a) return;
-    var h=a.getAttribute("href");
-    if(!h||h.indexOf("mailto:")===0) return;
-    if(h.charAt(0)==="#"){ return; }
-    var hash=""; var base=h;
-    var hi=h.indexOf("#"); if(hi>-1){ base=h.slice(0,hi); hash=h.slice(hi); }
-    if(base==="/"||base==="") base="/index.html";
-    if(map[base]!==undefined){ e.preventDefault(); show(map[base],hash||null); }
-    else if(h==="#"){ e.preventDefault(); }
-  });
-})();
-</script>
+${routerScript}
 <script>${js}</script>
 <script>${heroJs}</script>
 <script>window.__RINGS_CFG={bgOpaque:false,outlineWidth:0.012,wireColor:"#8a8c84",wireAlpha:0.55,camDist:9.5};</script>
 <script>${ringsJs}</script>`;
 
-// Artifact fragment (wrapped by the runtime skeleton at publish time).
+// Artifact fragment (wrapped by the runtime skeleton at publish time). Single
+// file, home active; the router handles the rest in-session.
 const preview = `<title>${esc(site.name)} Portfolio</title>
 ${FONTS}
-${innerBody}
+${innerBodyFor("home")}
 `;
 await writeFile(OUT + "preview.html", preview);
 
 /* --- dist/ (deployable, static host) -------------------------------------- */
-// Full standalone document: proper head + noindex (site stays unlisted) so it
-// serves correctly from GitHub Pages without any base-path handling.
+// One real, standalone file per route (proper head + noindex), so deep-links,
+// refresh and share-crawlers all resolve server-side. The client router then
+// takes over for in-app navigation.
 const DIST = OUT + "dist/";
 await mkdir(DIST + "assets", { recursive: true });
+await mkdir(DIST + "work", { recursive: true });
 
-// Head metadata: favicon (fixes the blank tab), description, canonical, and the
-// Open Graph / Twitter cards that make shared links unfurl with a preview.
-// Icons use RELATIVE hrefs (the site lives under /portfolio/); OG url + image
-// are ABSOLUTE via SITE_URL, as unfurlers require. `noindex` still keeps the
-// site out of search results — that directive doesn't block preview bots; the
-// robots.txt below is what allows them through.
-const DESCRIPTION = site.hero.deck;
-const OG_TITLE = `${site.name} — ${site.role}`;
 const OG_IMAGE = `${SITE_URL}/assets/og.png`;
-const META = `<meta name="description" content="${esc(DESCRIPTION)}">
+
+// Per-page head: title, description, canonical, and the Open Graph / Twitter
+// cards that make shared links unfurl. OG url + image are ABSOLUTE via SITE_URL
+// (unfurlers require it); the favicon is relative, depth-corrected below.
+function headFor(page) {
+  const canon = `${SITE_URL}${page.path}`;
+  const ogTitle = page.id === "home" ? `${site.name} — ${site.role}` : page.title;
+  const desc = page.desc;
+  const up = page.file.includes("/") ? "../" : ""; // /work/<slug>.html sits a level down
+  return `<meta name="description" content="${esc(desc)}">
 <meta name="author" content="${esc(site.name)}">
-<link rel="canonical" href="${SITE_URL}/">
+<link rel="canonical" href="${canon}">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#faf9f6">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101109">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="${up}assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="${up}assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(site.name)}">
-<meta property="og:title" content="${esc(OG_TITLE)}">
-<meta property="og:description" content="${esc(DESCRIPTION)}">
-<meta property="og:url" content="${SITE_URL}/">
+<meta property="og:title" content="${esc(ogTitle)}">
+<meta property="og:description" content="${esc(desc)}">
+<meta property="og:url" content="${canon}">
 <meta property="og:image" content="${OG_IMAGE}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="${esc(OG_TITLE)}">
+<meta property="og:image:alt" content="${esc(ogTitle)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${esc(OG_TITLE)}">
-<meta name="twitter:description" content="${esc(DESCRIPTION)}">
+<meta name="twitter:title" content="${esc(ogTitle)}">
+<meta name="twitter:description" content="${esc(desc)}">
 <meta name="twitter:image" content="${OG_IMAGE}">`;
+}
 
-const siteIndex = `<!doctype html>
+// A full standalone document for one route. Nested routes (/work/<slug>.html)
+// sit one directory down, so their relative image src="assets/…" get an "../".
+function docFor(page) {
+  let body = innerBodyFor(page.id);
+  if (page.file.includes("/")) body = body.replaceAll('src="assets/', 'src="../assets/');
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>${esc(site.name)} — ${esc(site.role)}</title>
-${META}
+<title>${esc(page.title)}</title>
+${headFor(page)}
 ${FONTS}
 </head>
 <body>
-${innerBody}
+${body}
 </body>
 </html>`;
-await writeFile(DIST + "index.html", siteIndex);
+}
+
+for (const page of pages) await writeFile(DIST + page.file, docFor(page));
+// SPA-safe fallback: GitHub Pages serves 404.html for any unknown path; boot it
+// as home and the router resolves from the URL.
+await writeFile(DIST + "404.html", docFor(pages[0]));
 
 // standalone WebGL ring tunnel (spec-exact, opaque) — reproducible in the build
 const ringTunnel = `<!doctype html>
@@ -733,4 +791,4 @@ await writeFile(
   ].join("\n"),
 );
 
-console.log("built dist/ — " + pages.length + " pages in one self-contained index.html");
+console.log("built dist/ — " + pages.length + " routed pages (+ 404.html) as standalone files");
