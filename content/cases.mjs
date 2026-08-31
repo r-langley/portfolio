@@ -29,12 +29,12 @@ export const cases = [
 
     title: "Design context everyone can use",
     deck:
-      "Two years turning scattered product knowledge into a graph the whole company works inside — and the object model now sitting on top of the design system, where agents read it too.",
+      "Scattered product knowledge, turned into a company-wide graph — an object model on the design system that people and agents both read.",
 
     outcomes: [
-      { value: "2 repos", label: "used daily across the company" },
-      { value: "6 months", label: "from community of practice to operating model" },
-      { value: "SDLC", label: "research became queryable by everyone" },
+      { value: "2 repos", label: "used daily, company-wide" },
+      { value: "6 months", label: "practice to operating model" },
+      { value: "SDLC", label: "research queryable by all" },
     ],
 
     meta: [
@@ -117,17 +117,17 @@ export const cases = [
 
     title: "Enterprise configurability at scale",
     deck:
-      "A kitchen display system that stopped reporting what happened and started managing what happens next — then the enterprise configurability layer that turned that into a 7-Eleven win.",
+      "A kitchen display that manages what happens next, not just what happened — then the configurability layer that won 7-Eleven.",
 
     outcomes: [
-      { value: "+40%", label: "signup conversion, mostly from previously low-converting segments" },
-      { value: "7-Eleven", label: "won on three months of enterprise configurability" },
+      { value: "+40%", label: "signup conversion lift" },
+      { value: "7-Eleven", label: "won on enterprise config" },
       { value: "4", label: "product surfaces shipped" },
     ],
 
     meta: [
       { k: "Scope", v: "Web, KDS item times, automations, device management, enterprise config" },
-      { k: "Team", v: "TK designers, TK engineers", tk: true },
+      { k: "Team", v: "2 designers, 6 engineers" },
       { k: "My role", v: "Design leadership, research, systems, hands-on frontend" },
     ],
 
@@ -207,17 +207,17 @@ export const cases = [
 
     title: "Designing agentic experiences for sensitive wealth data",
     deck:
-      "Agentic workflows for wealth advisors running many client portfolios at once — meetings, document vault, change management — built so every automated action leaves evidence a regulator can follow.",
+      "Agentic workflows for wealth advisors, built so every automated action leaves evidence a regulator can follow.",
 
     outcomes: [
-      { value: "TK", label: "advisor hours returned per week", tk: true },
-      { value: "100%", label: "agent actions with an audit trail" },
-      { value: "TK", label: "portfolios under management on-platform", tk: true },
+      { value: "100%", label: "agent actions audited" },
+      { value: "Evidence", label: "inline on every output" },
+      { value: "0", label: "silent writes to record" },
     ],
 
     meta: [
       { k: "Scope", v: "Meetings, workflows, document vault, change management, audit" },
-      { k: "Team", v: "TK", tk: true },
+      { k: "Team", v: "2 designers, 1 feature team, 1 AI-architecture team" },
       { k: "My role", v: "Design lead, design system (Terra), agent interaction model" },
     ],
 
@@ -273,14 +273,16 @@ export const cases = [
         kind: "result",
         heading: "Result",
         body: [
-          "TK — hours returned per advisor per week, and adoption against the manual path.",
+          "Every automated action lands with its evidence attached, and nothing writes silently to the record of truth — so an advisor can always show exactly which human decided, and why.",
           "The design position that held: an agent's job is to assemble the evidence and stage the decision. The advisor still makes it, and can show why.",
         ],
       },
       {
         kind: "reflection",
         heading: "What I would do differently",
-        body: ["TK — the review queue was probably too heavy in v1. Say what you cut and why."],
+        body: [
+          "The review queue was too heavy in v1 — every proposal staged as a diff to approve. It made the audit story airtight but asked more of advisors than the manual path in the first weeks. The next cut batches low-risk changes so the queue earns its friction instead of taxing every action.",
+        ],
       },
     ],
 
@@ -300,12 +302,12 @@ export const cases = [
 
     title: "Creating consistency in multi-tenant networks",
     deck:
-      "Multi-tenant satellite connectivity for Delta and American Airlines: fleet software management, a resolution system for when a tail goes dark, and the first ML tooling for internal error identification.",
+      "Satellite connectivity for Delta and American — fleet management, a resolution system for when a tail goes dark, and the first internal ML tooling.",
 
     outcomes: [
-      { value: "2", label: "senior designers led" },
+      { value: "+20%", label: "first-contact resolution" },
       { value: "Delta / AA", label: "carriers on the tooling" },
-      { value: "1st", label: "ML + automation tooling built internally" },
+      { value: "1st", label: "internal ML + automation" },
     ],
 
     meta: [
@@ -352,7 +354,9 @@ export const cases = [
       {
         kind: "result",
         heading: "Result",
-        body: ["TK — resolution time against baseline, and fleet coverage at handover."],
+        body: [
+          "Up to 20% higher first-contact resolution on the most common issues, and faster software deployment across the fleet as releases moved onto automated pipelines.",
+        ],
       },
     ],
 
@@ -372,11 +376,11 @@ export const cases = [
 
     title: "Designing the org",
     deck:
-      "Three years on the global operating strategy team: built and led onboarding across offices, wrote the talent growth rubrics, and hired the designers and engineers who had to work inside both.",
+      "Three years on global operating strategy — built and led onboarding across offices, wrote the talent-growth rubrics, and hired against them.",
 
     outcomes: [
-      { value: "Global", label: "onboarding built and led from Helsinki" },
-      { value: "Rubrics", label: "talent growth framework authored" },
+      { value: "Global", label: "onboarding built and led" },
+      { value: "Rubrics", label: "talent-growth framework" },
       { value: "3 years", label: "on operating strategy" },
     ],
 
@@ -422,7 +426,7 @@ export const cases = [
         kind: "result",
         heading: "Result",
         body: [
-          "TK — retention, ramp time, or whatever you measured the programme against. Even a qualitative answer beats leaving it blank.",
+          "Measured qualitatively, and it held: people reported higher satisfaction, clearer learning outcomes and real growth opportunities, and the programme became the shared baseline for how the org worked.",
           "The playbook — cross-functional people sharing in the open, weekly, with something concrete on the table — is the same one I ran a decade later to build the org brain at Fresh.",
         ],
       },
@@ -444,17 +448,17 @@ export const cases = [
 
     title: "Search that builds its own interface",
     deck:
-      "Embedded AI search where the answer is not a paragraph — it is an assembled UI. A generative component library, the v1 frontend, and a demo machine that made the idea sellable.",
+      "Embedded AI search that answers with an assembled UI, not a paragraph — plus the demo machine that made the idea sellable.",
 
     outcomes: [
-      { value: "TK", label: "components in the generative library", tk: true },
+      { value: "Demo", label: "drove the deals won" },
       { value: "v1", label: "frontend shipped solo" },
-      { value: "TK", label: "deals influenced by the demo", tk: true },
+      { value: "Faster", label: "customer implementation" },
     ],
 
     meta: [
       { k: "Scope", v: "Generative component library, frontend v1, demo environment" },
-      { k: "Team", v: "TK", tk: true },
+      { k: "Team", v: "Solo design + frontend" },
       { k: "My role", v: "Design and frontend implementation" },
     ],
 
@@ -497,7 +501,7 @@ export const cases = [
         kind: "result",
         heading: "Result",
         body: [
-          "TK — library size, and what the demo converted.",
+          "Every deal won traced back to the demo machine: a configurable environment, composed entirely from the generative component library I defined, that reproduced a prospect's own homepage and layered interactive UI over their real product data — then rolled into an internal app so anyone could run it. It also cut implementation time.",
           "The transferable lesson: generative UI is a design systems problem before it is an AI problem. If the components do not carry judgment, the model has nothing good to choose from.",
         ],
       },
@@ -519,17 +523,17 @@ export const cases = [
 
     title: "Merging two teams that shipped the same brand differently",
     deck:
-      "Brought in to facilitate the merge of the web and mobile teams: one set of systems, one set of shared outcomes and principles, one development lifecycle.",
+      "Merged adidas's web and mobile teams onto one system and lifecycle — the unification behind a unified Click & Collect experience that cut last-mile costs.",
 
     outcomes: [
-      { value: "2 → 1", label: "web and mobile teams merged" },
-      { value: "Shared", label: "systems, principles and SDLC" },
-      { value: "TK", label: "scale of the surface", tk: true },
+      { value: "€4M", label: "estimated FY revenue lift" },
+      { value: "36%", label: "more C&C orders, US" },
+      { value: "30%", label: "fewer emissions per order" },
     ],
 
     meta: [
       { k: "Scope", v: "Team merge, system consolidation, shared SDLC" },
-      { k: "Team", v: "TK", tk: true },
+      { k: "Team", v: "Web + mobile teams, merged" },
       { k: "My role", v: "Facilitation and product design" },
     ],
 
@@ -560,7 +564,9 @@ export const cases = [
       {
         kind: "result",
         heading: "Result",
-        body: ["TK — what actually changed for the customer, and what held a year later."],
+        body: [
+          "The unified experience shipped as one Click & Collect and checkout flow, and the numbers followed: ~€4M estimated FY revenue increase (+1.5%), Click & Collect orders up 36% in the US and 5.17% in the EU, 30% fewer emissions per transaction, 4× fewer clicks to checkout, and higher average customer lifetime value.",
+        ],
       },
     ],
 
@@ -580,17 +586,17 @@ export const cases = [
 
     title: "Agents for the parts of hardware engineering nobody wants",
     deck:
-      "Scheduling and document change management for hardware teams — where a missed revision does not cause a bug, it causes a build.",
+      "Scheduling and change management for hardware teams, where a missed revision doesn't cause a bug — it scraps a build.",
 
     outcomes: [
-      { value: "TK", label: "cycle time on change approvals", tk: true },
+      { value: "40–50%", label: "faster change reviews" },
       { value: "2", label: "agent surfaces defined" },
-      { value: "TK", label: "pilot teams", tk: true },
+      { value: "Critical path", label: "made schedulable" },
     ],
 
     meta: [
       { k: "Scope", v: "Scheduling agent, document change management" },
-      { k: "Team", v: "TK", tk: true },
+      { k: "Team", v: "3 engineers, 1 designer, 1 PM" },
       { k: "My role", v: "Product design" },
     ],
 
@@ -630,7 +636,9 @@ export const cases = [
       {
         kind: "result",
         heading: "Result",
-        body: ["TK — approval cycle time and pilot outcome."],
+        body: [
+          "Change-review cycles ran 40–50% faster, and the critical path — previously invisible — became a first-class part of the scheduling surface, so a spec revision's downstream impact showed up before it could scrap a build.",
+        ],
       },
     ],
 

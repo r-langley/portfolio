@@ -332,7 +332,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex; flex-direction: column; gap: 12px;
   background: var(--bg-raised); padding: 22px 20px 20px;
   border: 1px solid var(--line); border-radius: var(--r);
-  overflow: hidden; /* clip the hero thumbnail to the rounded corners */
   /* sharp bezel emboss, matching the buttons */
   box-shadow: inset 0 1px 0 var(--bezel-hi), inset 0 -1px 0 var(--bezel-lo), 0 1px 2px rgba(0,0,0,.05);
   transition: background var(--t), border-color var(--t), box-shadow var(--t);
@@ -340,8 +339,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 }
 .card:hover { border-color: var(--line-2); }
 .card:hover { background: var(--bg-sunk); }
-/* hero thumbnail: full-bleed to the card's top + side edges, uniform crop */
-.card__img { margin: -22px -20px 0; border-bottom: 1px solid var(--line); background: var(--bg-sunk); }
+/* hero thumbnail: inset with the same padding as the text, its own rounded panel */
+.card__img { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--bg-sunk); }
 .card__img img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
 .card__top { display: flex; align-items: center; gap: 10px; }
 .card__mark {
