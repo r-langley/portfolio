@@ -45,51 +45,87 @@ const I = {
 // the page renders, so it never drifts. TK-valued outcomes are omitted rather
 // than shipped as fake numbers.
 function buildResumeMarkdown() {
+  const clean = (x) => String(x).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  const noTk = (x) => String(x).replace(/\bTK\b/g, "—");
   const L = [];
-  L.push(`# ${site.name} — ${site.role}`);
-  L.push("");
-  L.push(`${site.location} · ${site.email}`);
-  L.push("");
-  L.push("> Paste this into any AI assistant and ask about my work, my approach, or a specific project. It is a living resume and context file.");
-  L.push("");
-  L.push("## In one line");
-  L.push(site.hero.deck);
-  L.push("");
-  L.push("## Point of view");
-  for (const it of site.principles.items) {
-    L.push(`- **${it.title.replace(/<[^>]+>/g, "")}** — ${it.body}`);
-  }
-  L.push("");
-  L.push("## Selected work");
-  const clean = (x) => String(x).replace(/<[^>]+>/g, "");
+  const p = (s = "") => L.push(s);
+
+  p(`# ${site.name} — ${site.role}`);
+  p(`${site.location} · ${site.email} · resume: ${site.resumeUrl}`);
+  p("");
+  p("> Paste this into any AI assistant and ask about my work, my approach, or a specific project. It's a living context file, generated straight from my portfolio, so it never drifts from what the site says.");
+  p("");
+
+  p("## Snapshot");
+  p(clean(site.hero.deck));
+  p("");
+  p(`**Open to:** ${clean(site.contact.heading)} ${clean(site.contact.body)}`);
+  p("");
+
+  p("## Recent");
+  for (const s of site.strip.items) p(`- **${clean(s.name)}** — ${clean(s.note)}`);
+  p("");
+
+  p("## Point of view");
+  for (const it of site.principles.items) p(`- **${clean(it.title)}** — ${clean(it.body)}`);
+  p("");
+
+  p("## Selected work");
   const ordered = [...cases].sort((a, b) => a.order - b.order);
   for (const c of ordered) {
-    L.push("");
-    L.push(`### ${clean(c.title)}`);
-    L.push(`${c.company} · ${c.role} · ${c.period}`.replace(/TK/g, "—"));
-    L.push("");
-    L.push(clean(c.deck));
+    p("");
+    p(`### ${clean(c.title)}`);
+    p(noTk(`${c.company} · ${c.role} · ${c.period}`));
+    p("");
+    p(clean(c.deck));
+
+    const meta = c.meta.filter((m) => !m.tk).map((m) => `${m.k}: ${clean(m.v)}`);
+    if (meta.length) { p(""); p(meta.join(" · ")); }
+
     const outs = c.outcomes.filter((o) => !/\bTK\b/.test(o.value));
     if (outs.length) {
-      L.push("");
-      for (const o of outs) L.push(`- ${clean(o.value)} — ${clean(o.label)}`);
+      p("");
+      p("**Outcomes**");
+      for (const o of outs) p(`- ${clean(o.value)} — ${clean(o.label)}`);
     }
-    const problem = c.sections.find((x) => x.kind === "problem");
-    if (problem && problem.body) { L.push(""); L.push(clean(problem.body[0])); }
+
+    for (const s of c.sections) {
+      if (s.kind === "quote") { p(""); p(`> ${clean(s.text)}`); continue; }
+      p("");
+      if (s.heading) p(`**${clean(s.heading)}**`);
+      (s.body || []).forEach((b) => p(clean(b)));
+      (s.list || []).forEach((li) => p(`- ${clean(li)}`));
+    }
+
+    if (c.tags && c.tags.length) { p(""); p(`Tags: ${c.tags.join(", ")}`); }
   }
-  L.push("");
-  L.push("## Approach, in full");
+  p("");
+
+  p("## Capabilities index");
+  p("Individual moves, grouped by area — the same listing as the site's archive.");
+  for (const g of archive) {
+    p("");
+    p(`### ${g.group}`);
+    for (const r of g.rows) p(`- ${clean(r.title)} — ${clean(r.note)} (${r.org}, ${noTk(r.year)})`);
+  }
+  p("");
+
+  p("## Approach, in full");
   for (const b of approach.blocks) {
-    if (b.kind === "quote") { L.push(""); L.push(`> ${b.text}`); continue; }
+    if (b.kind === "quote") { p(""); p(`> ${clean(b.text)}`); continue; }
     if (b.heading === "Colophon") continue;
-    L.push("");
-    L.push(`### ${b.heading}`);
-    (b.body || []).forEach((x) => L.push(clean(x)));
-    (b.list || []).forEach((x) => L.push(`- ${clean(x)}`));
+    p("");
+    if (b.heading) p(`### ${clean(b.heading)}`);
+    (b.body || []).forEach((x) => p(clean(x)));
+    (b.list || []).forEach((x) => p(`- ${clean(x)}`));
+    (b.after || []).forEach((x) => p(clean(x)));
   }
-  L.push("");
-  L.push(`## Contact`);
-  L.push(`${site.contact.heading} ${site.contact.body} — ${site.email}`);
+  p("");
+
+  p("## Contact");
+  p(`${clean(site.contact.heading)} ${clean(site.contact.body)}`);
+  p(`Email: ${site.email} · Resume: ${site.resumeUrl}`);
+
   return L.join("\n");
 }
 
