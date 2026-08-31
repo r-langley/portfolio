@@ -35,8 +35,12 @@ npm run serve        # http://localhost:8099  (serves dist/)
 Pushing to `main` triggers `.github/workflows/deploy.yml`: it runs `node build.mjs`
 and publishes `dist/` to GitHub Pages. No secrets or dependencies required.
 
-The site ships with `noindex` and a disallow-all `robots.txt`, so the public URL
-stays unlisted (search engines skip it) even though GitHub Pages URLs are public.
+The site ships with `noindex`, so it stays out of search results even though
+GitHub Pages URLs are public. `robots.txt` disallows general/search crawlers but
+allows the link-preview bots (Slack, X, LinkedIn, Facebook, iMessage/Applebot, …)
+so shared links still unfurl with an Open Graph card. The `og:image` and
+canonical/`og:url` are absolute — see `SITE_URL` in `build.mjs`, which must be
+updated if a custom domain is pointed at the site.
 
 ## Editing content
 
